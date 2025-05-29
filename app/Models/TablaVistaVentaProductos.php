@@ -10,13 +10,33 @@ class TablaVistaVentaProductos extends Model
 {
     use HasFactory;
 
-    protected $table = 'db0.TABLA_VISTA_VENTA_PRODUCTOS';
+    protected $table = 'TABLA_VISTA_VENTA_PRODUCTOS';
     protected $primaryKey = 'OPERACION';
     public $incrementing = false;
     public $timestamps = false;
     
     // Solo los campos realmente necesarios
     protected $fillable = [
+        'PERIODO',
+        'MES',
+        'RAZON_SOCIAL',
+        'GRUPO',
+        'SUBGRUPO',
+        'COD_FAMILIAP',
+        'DES_FAMILIA',
+        'COD_FAMILIA',
+        'DES_SUBFAMILIA',
+        'CODIGO',
+        'PRODUCTO',
+        'PRECIOPROM',
+        'CANTIDAD',
+        'VEN_CIGV',
+        'DOCUMENTO',
+        'SUCURSAL',
+        'FEC_EMISION',
+        'FEC_ACTUALIZA',
+        'OPERACION',
+        'NUM_PARTE_PROV',
         'CLIENTE',
         'DOC_CLIENTE',
         'CLIENTE_EMAIL',
@@ -25,35 +45,11 @@ class TablaVistaVentaProductos extends Model
         'FEC_EMISION',
         'VEN_CIGV',
         'CANTIDAD',
-        'PRODUCTO'
+        'PRODUCTO',
+        'TIP_ESTADO',
     ];
     
     protected $dates = ['FEC_EMISION'];
     
-    // Scope para datos de clientes
-    public function scopeClientes($query)
-    {
-        return $query->select([
-                'CLIENTE',
-                'DOC_CLIENTE',
-                'CLIENTE_EMAIL',
-                'CLIENTE_TELEFONO',
-                'SUCURSAL',
-                'FEC_EMISION',
-                DB::raw('COUNT(DISTINCT OPERACION) as total_compras'),
-                DB::raw('SUM(VEN_CIGV) as monto_total'),
-                DB::raw('SUM(CANTIDAD) as productos_totales')
-            ])
-            ->groupBy('CLIENTE', 'DOC_CLIENTE', 'CLIENTE_EMAIL', 'CLIENTE_TELEFONO', 'SUCURSAL', 'FEC_EMISION');
-    }
-    
-    // Scope para búsqueda eficiente
-    public function scopeBuscarCliente($query, string $search)
-    {
-        return $query->where(function($q) use ($search) {
-            $q->where('CLIENTE', 'like', "%{$search}%")
-              ->orWhere('DOC_CLIENTE', 'like', "%{$search}%")
-              ->orWhere('CLIENTE_EMAIL', 'like', "%{$search}%");
-        });
-    }
+   
 }
