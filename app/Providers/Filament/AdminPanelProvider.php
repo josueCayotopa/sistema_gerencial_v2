@@ -28,6 +28,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('/')
             ->login()
+            ->topNavigation()
+            ->sidebarWidth('40rem')
             ->brandLogo('/images/lOGO.png')
             ->favicon(asset('images/isotipo.webp'))
             ->spa()
