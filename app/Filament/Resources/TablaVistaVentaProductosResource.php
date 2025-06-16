@@ -1,135 +1,144 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Models;
 
-use App\Filament\Resources\TablaVistaVentaProductosResource\Pages;
-use App\Models\TablaVistaVentaProductos;
-use Filament\Forms;
-use Filament\Forms\Components\Select;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
-use Filament\Tables\Filters\SelectFilter;
-
-class TablaVistaVentaProductosResource extends Resource
+class TablaVistaVentaProductos extends Model
 {
-    protected static ?string $model = TablaVistaVentaProductos::class;
+    use HasFactory;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'Ventas';
-
-    public static function form(Forms\Form $form): Forms\Form
+    protected $table = 'TABLA_VISTA_VENTA_PRODUCTOS';
+    protected $primaryKey = 'OPERACION';
+    public $incrementing = false;
+    public $timestamps = false;
+    
+    // Campos optimizados sin duplicados
+    protected $fillable = [
+        'PERIODO',
+        'MES',
+        'RAZON_SOCIAL',
+        'GRUPO',
+        'SUBGRUPO',
+        'COD_FAMILIAP',
+        'DES_FAMILIA',
+        'COD_FAMILIA',
+        'DES_SUBFAMILIA',
+        'CODIGO',
+        'PRODUCTO',
+        'PRECIOPROM',
+        'CANTIDAD',
+        'VEN_CIGV',
+        'DOCUMENTO',
+        'COD_DOCUMENTO',
+        'SUCURSAL',
+        'FEC_EMISION',
+        'FEC_ACTUALIZA',
+        'FECHA_ATENCION',
+        'OPERACION',
+        'NUM_PARTE_PROV',
+        'CLIENTE',
+        'PACIENTE',
+        'DOC_CLIENTE',
+        'CLIENTE_EMAIL',
+        'CLIENTE_TELEFONO',
+        'TIP_ESTADO',
+        'ESPECIALIDAD',
+    ];
+    
+    protected $dates = ['FEC_EMISION', 'FEC_ACTUALIZA', 'FECHA_ATENCION'];
+    
+    // Scopes optimizados para consultas frecuentes
+    public function scopeActivos($query)
     {
-        return $form
-            ->schema([
-                // Sin formulario por ahora
-            ]);
+        return $query->where('TIP_ESTADO', 'NN');
     }
-
-    public static function table(Tables\Table $table): Tables\Table
+    
+    public function scopeDocumentosValidos($query)
     {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('CLIENTE')
-                    ->label('Cliente')
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('RAZON_SOCIAL'),
-                Tables\Columns\TextColumn::make('GRUPO')
-                    ->label('Grupo')
-                    ->sortable()
-                    ->searchable(),
-                    TextColumn::make('PRODUCTO')
-                    ->label('Producto')
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('DOC_CLIENTE')
-                    ->label('Documento Cliente')
-                    ->sortable()
-                    ->searchable(),
-            ])
-            ->filters([
-                SelectFilter::make('RAZON_SOCIAL')
-                    ->label('Razon Social')
-                    ->query(function (Builder $query, array $data) {
-                        return $query->where('RAZON_SOCIAL', $data['value']);
-                    })
-                    ->options(TablaVistaVentaProductos::pluck('RAZON_SOCIAL', 'RAZON_SOCIAL')->toArray())
-                    ->searchable()
-                    ->default('CLINICA LA LUZ SAC'),
-                Tables\Filters\SelectFilter::make('TIP_ESTADO')
-                    ->label('Estado')
-                    ->query(function (Builder $query, array $data) {
-                        return $query->where('TIP_ESTADO', $data['value']);
-                    })
-                    ->options([
-                        'NN' => 'Vigente',
-                        'AN' => 'Anulado',
-                    ])
-                    ->default('NN'),
-                SelectFilter::make('GRUPO')
-                    ->label('Grupo')
-                    ->options([
-                        'FARMACIA' => 'FARMACIA',
-                    ])
-                    ->query(function (Builder $query, array $data) {
-                        return $query->where('GRUPO', $data['value']);
-                    })
-                    ->default('FARMACIA'),
-                SelectFilter::make('PERIODO')
-                    ->label('Periodo')
-                    ->options([
-                        '2023' => '2023',
-                        '2024' => '2024',
-                        '2025' => '2025',
-                    ])
-                    ->default('2025')
-                    ->query(function (Builder $query, array $data) {
-                        return $query->where('PERIODO', $data['value']);
-                    }),
-
-                SelectFilter::make('MES')
-                    ->label('Mes')
-                    ->options([
-                        '01' => 'Enero',
-                        '02' => 'Febrero',
-                        '03' => 'Marzo',
-                        '04' => 'Abril',
-                        '05' => 'Mayo',
-                        '06' => 'Junio',
-                        '07' => 'Julio',
-                        '08' => 'Agosto',
-                        '09' => 'Setiembre',
-                        '10' => 'Octubre',
-                        '11' => 'Noviembre',
-                        '12' => 'Diciembre',
-                    ])
-                    ->default('01')
-                    ->query(function (Builder $query, array $data) {
-                        return $query->where('MES', $data['value']);
-                    }),
-
-
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make(), // opcional
-                Tables\Actions\DeleteAction::make(), // opcional
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+        return $query->whereIn('COD_DOCUMENTO', ['FV', 'BV', 'NC', 'ND']);
     }
-
-   
-
-    public static function getPages(): array
+    
+    public function scopePorPeriodo($query, $periodo)
     {
-        return [
-            'index' => Pages\ManageTablaVistaVentaProductos::route('/'),
-        ];
+        return $query->where('PERIODO', $periodo);
+    }
+    
+    public function scopePorEmpresa($query, $empresa)
+    {
+        return $query->where('RAZON_SOCIAL', $empresa);
+    }
+    
+    // Método optimizado para obtener opciones de select
+    public static function getOpcionesOptimizadas($campo, $filtros = [])
+    {
+        $query = self::select($campo)
+            ->activos()
+            ->documentosValidos()
+            ->whereNotNull($campo)
+            ->where($campo, '!=', '');
+            
+        // Aplicar filtros adicionales
+        foreach ($filtros as $key => $value) {
+            if ($value) {
+                $query->where($key, $value);
+            }
+        }
+        
+        return $query->groupBy($campo)
+            ->orderBy($campo)
+            ->limit(100) // Limitar para evitar timeouts
+            ->pluck($campo, $campo)
+            ->toArray();
+    }
+    
+    // Método para consultas de ventas optimizadas
+    public static function getVentasPivoteadas($filtros = [])
+    {
+        $sql = "
+            SELECT 
+                RAZON_SOCIAL,
+                SUM(CASE WHEN MES = '01' THEN VEN_CIGV ELSE 0 END) AS Ene,
+                SUM(CASE WHEN MES = '02' THEN VEN_CIGV ELSE 0 END) AS Feb,
+                SUM(CASE WHEN MES = '03' THEN VEN_CIGV ELSE 0 END) AS Mar,
+                SUM(CASE WHEN MES = '04' THEN VEN_CIGV ELSE 0 END) AS Abr,
+                SUM(CASE WHEN MES = '05' THEN VEN_CIGV ELSE 0 END) AS May,
+                SUM(CASE WHEN MES = '06' THEN VEN_CIGV ELSE 0 END) AS Jun,
+                SUM(CASE WHEN MES = '07' THEN VEN_CIGV ELSE 0 END) AS Jul,
+                SUM(CASE WHEN MES = '08' THEN VEN_CIGV ELSE 0 END) AS Ago,
+                SUM(CASE WHEN MES = '09' THEN VEN_CIGV ELSE 0 END) AS Sep,
+                SUM(CASE WHEN MES = '10' THEN VEN_CIGV ELSE 0 END) AS Oct,
+                SUM(CASE WHEN MES = '11' THEN VEN_CIGV ELSE 0 END) AS Nov,
+                SUM(CASE WHEN MES = '12' THEN VEN_CIGV ELSE 0 END) AS Dic
+            FROM TABLA_VISTA_VENTA_PRODUCTOS
+            WHERE 
+                PERIODO = ? 
+                AND TIP_ESTADO = 'NN'
+                AND COD_DOCUMENTO IN ('FV', 'BV', 'NC', 'ND')
+        ";
+        
+        $params = [$filtros['PERIODO'] ?? date('Y')];
+        
+        // Aplicar filtros dinámicos
+        if (!empty($filtros['RAZON_SOCIAL'])) {
+            $sql .= " AND RAZON_SOCIAL = ?";
+            $params[] = $filtros['RAZON_SOCIAL'];
+        }
+        
+        if (!empty($filtros['SUCURSAL'])) {
+            $sql .= " AND SUCURSAL = ?";
+            $params[] = $filtros['SUCURSAL'];
+        }
+        
+        if (!empty($filtros['SUBGRUPO'])) {
+            $sql .= " AND SUBGRUPO = ?";
+            $params[] = $filtros['SUBGRUPO'];
+        }
+        
+        $sql .= " GROUP BY RAZON_SOCIAL ORDER BY RAZON_SOCIAL LIMIT 20";
+        
+        return DB::select($sql, $params);
     }
 }

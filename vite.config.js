@@ -8,4 +8,16 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    apexcharts: ["apexcharts"], // Chunk separado para ApexCharts
+                },
+            },
+        },
+    },
+    optimizeDeps: {
+        include: ["apexcharts"],
+    },
 });
